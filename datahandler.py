@@ -1,8 +1,10 @@
-"""
-datahandler.py
+# datahandler.py
 
+'''
 This file is used for data preprocessing and data preparation for forecasting.
-"""
+
+'''
+
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -42,11 +44,3 @@ def corr():
     del Xero['Total_Current_Assets']
 
     Xero.to_csv('Xero_features.csv', index=False)
-
-def main():
-    
-    info()
-    
-    corr()
-
-main()

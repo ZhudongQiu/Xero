@@ -1,23 +1,4 @@
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
-import json
-from sklearn.metrics import accuracy_score
-
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.ensemble import RandomForestRegressor
-from xgboost.sklearn import XGBRegressor
-
-import keras
-from keras.layers import Dense
-from keras.models import Sequential
-from keras.layers import LSTM
-
-import itertools
-from collections import deque
+# modeler.py
 
 def load_data(file_name):
     return pd.read_csv(file_name)
@@ -189,32 +170,3 @@ def MA(name):
     pred_outcome = {'Moving Average':pred_dic}
     
     return pred_outcome
-
-def main():
-    """Call function to build models"""
-    model_df = pd.read_csv("Xero_features.csv")
-    train, test = tts(model_df)
-
-    # Model 1 - Linear regression
-    Linear_Regression = regressive_model(train, test, LinearRegression(), 'LinearRegression')
-
-    # Model 2 - Random forest regression
-    Random_Forest = regressive_model(train, test, RandomForestRegressor(n_estimators = 10),'RandomForest')
-
-    # Model 3 - XGBoost
-    XGBoost = regressive_model(train, test, XGBRegressor(n_estimators=100, learning_rate=0.2, objective='reg:squarederror'),'XGBoost')
-
-    # Model 4 - Long Short - Term Memory
-    LSTM = lstm_model(train, test)
-
-    # Use Moving average to predict features
-    MovingAverage = MA('Net_Income')
-
-    #Save output to json file
-    to_json(Linear_Regression)
-    to_json(Random_Forest)
-    to_json(XGBoost)
-    to_json(LSTM)
-    to_json(MovingAverage)
-
-main()

@@ -1,8 +1,4 @@
-"""
-
-@file: config.py
-
-"""
+# config.py
 
 Config = {'Xero_test':'Xero_project/Xero_test.csv',
           'Xero_train':'Xero_project/Xero_train.csv',

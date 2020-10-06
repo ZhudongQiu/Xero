@@ -1,9 +1,9 @@
-"""
-requirments.py
+# requirments.py
 
+'''
 pip install and all libraries that are used
 
-"""
+'''
 
 pip install pandas
 pip install numpy
