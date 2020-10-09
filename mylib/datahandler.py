@@ -1,14 +1,14 @@
 # datahandler.py
 
-'''
-This file is used for data preprocessing and data preparation for forecasting.
-
-'''
-
 import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+
+'''
+This file is used for data preprocessing and data preparation for forecasting.
+
+'''
 
 def load_data(file_name):
     """Import dataframe."""
@@ -16,7 +16,8 @@ def load_data(file_name):
 
 def info():
     """To see the dataframe's basic information."""
-    Xero = load_data('Xero_train.csv')
+    Xero = load_data('Data.csv')
+    Xero['Date'] = pd.to_datetime(Xero['Date'])
     Xero.info()
     Xero.Net_Income.describe()
 
@@ -28,7 +29,7 @@ def info():
 
 def corr():
     """Data preparation for forecasting."""
-    Xero = load_data('Xero_train.csv')
+    Xero = load_data('Data.csv')
     corrMat = Xero.corr()
     mask = np.array(corrMat)
     mask[np.tril_indices_from(mask)] = False
@@ -38,9 +39,14 @@ def corr():
 
     print(corrMat['Net_Income'].sort_values(ascending=False))
 
-    del Xero['Total_Cost_of_Sales']
-    del Xero['Total_Liabilities_and_Equity']
-    del Xero['Total_Current_Liabilities']
-    del Xero['Total_Current_Assets']
-
-    Xero.to_csv('Xero_features.csv', index=False)
+    dic = corrMat['Net_Income'].to_dict()
+    lis = []
+    for i in dic.values():
+        if abs(i) < 0.4:
+            lis.append(i)
+    for j in dic.items():
+        for k in lis:
+            if j[1] == k:
+                del Xero[j[0]]
+    Xero['Date'] = pd.to_datetime(Xero['Date'])
+    Xero.to_csv('Features.csv', index=False)

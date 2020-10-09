@@ -1,8 +1,8 @@
 # config.py
 
-Config = {'Xero_test':'Xero_project/Xero_test.csv',
-          'Xero_train':'Xero_project/Xero_train.csv',
-          'Xero_features':'Xero_project/Xero_features.csv',
+Config = {'xero_json':'Xero_project/xero_json.csv',
+          'Data':'Xero_project/Data.csv',
+          'Features':'Xero_project/Features.csv',
           'Outcome':'Xero_project/Outcome.json',
           'LinearRegression_forecast':'Xero_project/LinearRegression_forecas.PNG',
           'LSTM_forecast':'Xero_project/LSTM_forecast.PNG',

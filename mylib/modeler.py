@@ -1,5 +1,26 @@
 # modeler.py
 
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+import json
+
+from sklearn.metrics import accuracy_score
+
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.ensemble import RandomForestRegressor
+from xgboost.sklearn import XGBRegressor
+
+import keras
+from keras.layers import Dense
+from keras.models import Sequential
+from keras.layers import LSTM
+
+import itertools
+from collections import deque
 def load_data(file_name):
     return pd.read_csv(file_name)
 
@@ -64,6 +85,7 @@ def get_scores(unscaled_df, original_df, model_name):
     r2 = r2_score(original_df.Net_Income[-15:], unscaled_df.pred_value[-15:])
     model_scores[model_name] = [rmse, mae]
 
+    print(model_name)
     print(f"RMSE: {rmse}")
     print(f"MAE: {mae/100}%")
     print(f"R2 Score: {r2}")
@@ -92,7 +114,7 @@ def regressive_model(train_data, test_data, model, model_name):
     mod.fit(X_train, y_train)
     predictions = mod.predict(X_test)
     
-    original_df = pd.read_csv('Xero_test.csv')
+    original_df = pd.read_csv('Features.csv')
     unscaled = undo_scaling(predictions, X_test, scaler_object)
     unscaled_df = predict_df(unscaled, original_df)
     
@@ -122,7 +144,7 @@ def lstm_model(train_data, test_data):
     model.fit(X_train, y_train, epochs=200, batch_size=1, verbose=1, shuffle=False)
     predictions = model.predict(X_test, batch_size=1)
     
-    original_df = pd.read_csv('Xero_test.csv')
+    original_df = pd.read_csv('Features.csv')
     unscaled = undo_scaling(predictions, X_test, scaler_object, lstm=True)
     unscaled_df = predict_df(unscaled, original_df)
     
@@ -157,7 +179,7 @@ def moving_average(data_array, n=3):
         yield s / float(n)
 
 def MA(name):
-    Xero = pd.read_csv('Xero_test.csv')
+    Xero = pd.read_csv('Features.csv')
     Date = Xero['Date'][2:].values.tolist()
     features = Xero[name].values.tolist()
     features_MA = list(moving_average(features))
