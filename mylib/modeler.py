@@ -14,6 +14,9 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.ensemble import RandomForestRegressor
 from xgboost.sklearn import XGBRegressor
 
+import joblib
+
+
 import keras
 from keras.layers import Dense
 from keras.models import Sequential
@@ -21,6 +24,11 @@ from keras.layers import LSTM
 
 import itertools
 from collections import deque
+
+import numpy as np
+np.set_printoptions(suppress=True)
+
+
 def load_data(file_name):
     return pd.read_csv(file_name)
 
@@ -89,6 +97,8 @@ def get_scores(unscaled_df, original_df, model_name):
     print(f"RMSE: {rmse}")
     print(f"MAE: {mae/100}%")
     print(f"R2 Score: {r2}")
+
+    return r2
     
 def plot_results(results, original_df, model_name):
     fig, ax = plt.subplots(figsize=(15, 5))
@@ -102,7 +112,7 @@ def plot_results(results, original_df, model_name):
 
 def to_json(x):
     jsonData = json.dumps(x, indent=1)
-    fileObject = open('Outcome.json', 'a+')
+    fileObject = open('Model_Accuracy.json', 'a+')
     fileObject.write(jsonData)
     fileObject.close()
 
@@ -119,16 +129,19 @@ def regressive_model(train_data, test_data, model, model_name):
     unscaled_df = predict_df(unscaled, original_df)
     
     plot_results(unscaled_df, original_df,model_name)
-    get_scores(unscaled_df, original_df, model_name)
+    r2 = get_scores(unscaled_df, original_df, model_name)
     
     a = original_df['Date'][10:]
     b = unscaled_df['pred_value']
         
     pred_df = pd.DataFrame(zip(a,b), columns = ['Date', 'prediction'])
     pred_dic = pred_df.set_index('Date').T.to_dict('list')
-    pred_outcome = {model_name: pred_dic}
+    pred_outcome = {model_name:pred_dic}
+
+    # Save model
+    joblib.dump(mod.fit(X_train, y_train), model_name+".pkl")
     
-    return pred_outcome
+    return pred_outcome, r2
 
 def lstm_model(train_data, test_data):
     X_train, y_train, X_test, y_test, scaler_object = scale_data(train_data, test_data)
@@ -148,7 +161,7 @@ def lstm_model(train_data, test_data):
     unscaled = undo_scaling(predictions, X_test, scaler_object, lstm=True)
     unscaled_df = predict_df(unscaled, original_df)
     
-    get_scores(unscaled_df, original_df, 'LSTM')
+    r2 = get_scores(unscaled_df, original_df, 'LSTM')
     plot_results(unscaled_df, original_df, 'LSTM')
     
     a = original_df['Date'][10:]
@@ -157,8 +170,9 @@ def lstm_model(train_data, test_data):
     pred_df = pd.DataFrame(zip(a,b), columns = ['Date', 'prediction'])
     pred_dic = pred_df.set_index('Date').T.to_dict('list')
     pred_outcome = {'LSTM':pred_dic}
+
     
-    return pred_outcome
+    return pred_outcome,r2
 
 def moving_average(data_array, n=3):
     '''
@@ -192,3 +206,59 @@ def MA(name):
     pred_outcome = {'Moving Average':pred_dic}
     
     return pred_outcome
+
+def ready_df():
+    Xero = pd.read_csv("Features.csv")
+    n = len(Xero["Net_Income"])
+    Xero.drop(["Date", "Net_Income","Total_Revenue"], axis=1, inplace=True)
+    df = Xero[(n - 4) : (n - 1)]
+
+    df = df.reset_index(drop = True)
+
+    return df
+
+def get_months_feature(numbers):
+    df = ready_df()
+    features = list(df)
+
+    m = 0
+    times = 0
+    
+    while times < numbers:
+        new_df = []
+        for i in features:
+            data = list(moving_average(df[i][m+times : m+3+times]))
+            new_df.extend(data)
+        df.loc[3+times] = new_df
+        times = times + 1
+
+    df.to_csv("forecast_feature.csv", index=False)
+
+def get_date_num(numbers):
+    df = pd.read_csv("Features.csv")
+    n = len(df["Net_Income"])
+
+    get_months = []
+
+    t = 0
+    
+    year1 = df["Date"][n-2][0]+df["Date"][n-2][1]
+    year2 = df["Date"][n-2][2]+df['Date'][n-2][3]
+    conn1 = df["Date"][n-2][4]
+    month = df["Date"][n-2][5]+df["Date"][n-2][6]
+    conn2 = df["Date"][n-2][7]
+    day = df['Date'][n-2][8]+df['Date'][n-2][9]
+    
+    while t < numbers:
+        month = int(month) + 1
+        if month == 13:
+            year2 = int(year2) + 1
+            month = 1
+        if year2 == 100:
+            year1 = int(year1) + 1
+            year2 = '00'
+        get_months.append(str(year1)+str(year2)+conn1+str(month)+conn2+day)
+        t = t + 1
+
+    return get_months
+
