@@ -73,7 +73,7 @@ to_json(XGBoost)
 to_json(LSTM)
 
 # Use Moving average to forecast feature
-get_months_feature(mylib.config.Config["Number_months_forecast"])
+get_months_feature(Config["Number_months_forecast"])
     
 # Import model to predict
 test = pd.read_csv('forecast_feature.csv')
@@ -81,7 +81,7 @@ model = joblib.load('LinearRegression.pkl')
 result = model.predict(test)[3:]
 
 # Save prediction to Json File
-month =  get_date_num(mylib.config.Config["Number_months_forecast"])
+month =  get_date_num(Config["Number_months_forecast"])
 
 pred_df = pd.DataFrame(zip(month,result), columns = ['Date', 'prediction'])
 pred_dic = pred_df.set_index("Date").T.to_dict('list')
